@@ -9,13 +9,13 @@
         android:textSize="20dp"
         android:textColor="#ff1493"
         android:text="当前状态"
-        android:layout_margin="20dp"
+        android:layout_margin="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
     <LinearLayout
         android:id="@+id/tree_group"
-        android:layout_marginBottom="50dp"
+        android:layout_marginBottom="20dp"
         android:orientation="horizontal"
         android:gravity="center"
         android:layout_width="match_parent"
@@ -62,8 +62,18 @@
         android:layout_height="wrap_content"
         />
 
+    <TextView
+        android:id="@+id/all_info"
+        android:lines="1"
+        android:layout_margin="30dp"
+        android:textSize="30dp"
+        android:gravity="center"
+        android:textColor="#9370db"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <LinearLayout
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="5dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         >

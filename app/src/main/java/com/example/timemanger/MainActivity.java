@@ -3,11 +3,16 @@ package com.example.timemanger;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Message;
+import android.service.wallpaper.WallpaperService;
+import android.support.annotation.IntegerRes;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.os.EnvironmentCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -49,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public Button currentButton = null;
 
     public TextView statusTextView = null;
+    public TextView allinforTextView = null;
 
     public Date startData = null;
 
@@ -122,6 +128,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
 
+    public void ShowAllinforTextView(TimeInformation timeInformation) {
+        String allline = "";
+        allline += timeInformation.returnTodayData() + "\n";
+        allline += Integer.toString(timeInformation.retureFlagStatus()) + "\n";
+        allline += Long.toString(timeInformation.returnStartTime()) + "\n";
+        allline += timeInformation.returnTotalTime() + "\n";
+        allline += Long.toString(timeInformation.returnComputerTime()) + "\n";
+        allline += Long.toString(timeInformation.returnEnglishTime()) + "\n";
+        allline += Long.toString(timeInformation.returnWritingTime()) + "\n";
+        allline += Long.toString(timeInformation.returnReadTime()) + "\n";
+        allinforTextView.setText(allline);
+    }
+
+    public void ShowAllinforTextView() {
+        String showTime = timeInformation.returnTotalTime() + "小时";
+        allinforTextView.setText(showTime);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -150,12 +174,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         allButtons.add(readingButton);
 
         statusTextView = (TextView) findViewById(R.id.status);
+        allinforTextView = (TextView) findViewById(R.id.all_info);
         //测试日期显示代码
         /*Date nowData = new Date(System.currentTimeMillis());
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         simpleDateFormat.setTimeZone(TimeZone.getDefault());
         statusTextView.setText(simpleDateFormat.format(nowData));*/
 
+        Button historyButton = (Button) findViewById(R.id.history);
+        historyButton.setOnClickListener(this);
         Button exitButton = (Button) findViewById(R.id.exit);
         exitButton.setOnClickListener(this);
 
@@ -165,7 +192,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //读取存储信息
         timeInformation = new TimeInformation();
-        //timeInformation.LoadInformation();
+        timeInformation.LoadInformation();
+
+        ShowAllinforTextView();
 
         switch (timeInformation.retureFlagStatus()) {
             case TimeInformation.FLAGSTATUS_NOTASK:
@@ -188,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 currentButton.setBackgroundColor(Color.parseColor("#00CD00"));
                 setStatus(R.id.computer);
-                startData.setTime(timeInformation.returnStartTime());
+                startData = new Date(timeInformation.returnStartTime());
                 break;
             case TimeInformation.FLAGSTATUS_ENGLISH:
                 currentButton = (Button) findViewById(R.id.english);
@@ -200,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 currentButton.setBackgroundColor(Color.parseColor("#00CD00"));
                 setStatus(R.id.english);
-                startData.setTime(timeInformation.returnStartTime());
+                startData = new Date(timeInformation.returnStartTime());
                 break;
             case TimeInformation.FLAGSTATUS_WRITING:
                 currentButton = (Button) findViewById(R.id.writing);
@@ -212,7 +241,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 currentButton.setBackgroundColor(Color.parseColor("#00CD00"));
                 setStatus(R.id.writing);
-                startData.setTime(timeInformation.returnStartTime());
+                startData = new Date(timeInformation.returnStartTime());
                 break;
             case TimeInformation.FLAGSTATUS_READING:
                 currentButton = (Button) findViewById(R.id.reading);
@@ -224,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 currentButton.setBackgroundColor(Color.parseColor("#00CD00"));
                 setStatus(R.id.reading);
-                startData.setTime(timeInformation.returnStartTime());
+                startData = new Date(timeInformation.returnStartTime());
                 break;
         }
 
@@ -269,12 +298,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     statusTextView.setText("正在休息");
                     statusTextView.setTextColor(Color.parseColor("#FF0000"));
 
+                    timeInformation.storeFlagStatus(TimeInformation.FLAGSTATUS_NOTASK);
                     Date nowData = new Date(System.currentTimeMillis());
                     long diff_second = (nowData.getTime() - startData.getTime()) / 1000;
                     timeInformation.storeComputerTime(diff_second);
                     timeInformation.caculateTotalTime();
-                    timeInformation.storeDetailInformation(TimeInformation.FLAGSTATUS_COMPUTER,
-                            timeInformation.returnStartTime(), diff_second);
+                    timeInformation.UpdateInformation();
+                    timeInformation.StoreInformation();
                 }
                 timeInformation.StoreInformation();
                 break;
@@ -301,12 +331,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     statusTextView.setText("正在休息");
                     statusTextView.setTextColor(Color.parseColor("#FF0000"));
 
+                    timeInformation.storeFlagStatus(TimeInformation.FLAGSTATUS_NOTASK);
                     Date nowData = new Date(System.currentTimeMillis());
                     long diff_second = (nowData.getTime() - startData.getTime()) / 1000;
                     timeInformation.storeEnglishTime(diff_second);
                     timeInformation.caculateTotalTime();
-                    timeInformation.storeDetailInformation(TimeInformation.FLAGSTATUS_COMPUTER,
-                            timeInformation.returnStartTime(), diff_second);
+                    timeInformation.UpdateInformation();
+                    timeInformation.StoreInformation();
                 }
                 timeInformation.StoreInformation();
                 break;
@@ -333,12 +364,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     statusTextView.setText("正在休息");
                     statusTextView.setTextColor(Color.parseColor("#FF0000"));
 
+                    timeInformation.storeFlagStatus(TimeInformation.FLAGSTATUS_NOTASK);
                     Date nowData = new Date(System.currentTimeMillis());
                     long diff_second = (nowData.getTime() - startData.getTime()) / 1000;
                     timeInformation.storeWritingTime(diff_second);
                     timeInformation.caculateTotalTime();
-                    timeInformation.storeDetailInformation(TimeInformation.FLAGSTATUS_COMPUTER,
-                            timeInformation.returnStartTime(), diff_second);
+                    timeInformation.UpdateInformation();
+                    timeInformation.StoreInformation();
                 }
                 timeInformation.StoreInformation();
                 break;
@@ -365,17 +397,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     statusTextView.setText("正在休息");
                     statusTextView.setTextColor(Color.parseColor("#FF0000"));
 
+                    timeInformation.storeFlagStatus(TimeInformation.FLAGSTATUS_NOTASK);
                     Date nowData = new Date(System.currentTimeMillis());
                     long diff_second = (nowData.getTime() - startData.getTime()) / 1000;
                     timeInformation.storeReadingTime(diff_second);
                     timeInformation.caculateTotalTime();
-                    timeInformation.storeDetailInformation(TimeInformation.FLAGSTATUS_COMPUTER,
-                            timeInformation.returnStartTime(), diff_second);
+                    timeInformation.UpdateInformation();
+                    timeInformation.StoreInformation();
                 }
                 timeInformation.StoreInformation();
                 break;
             case R.id.exit:
                 finish();
+                break;
+            case R.id.history:
+                Intent intent = new Intent("com.example.timemanger.ACTION_START");
+                startActivity(intent);
                 break;
             default:
                 break;
@@ -436,13 +473,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         private long englishTime;
         private long writingTime;
         private long readingTime;
-        private List<detailList> detailInformation;
-
-        public class detailList {
-            public int flag;
-            public long start;
-            public long time;
-        }
+        private List<AllDataInformation> detailInformation;
 
         public TimeInformation() {
             Date nowData = new Date(System.currentTimeMillis());
@@ -457,6 +488,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             writingTime = 0;
             readingTime = 0;
             detailInformation = new ArrayList<>();
+        }
+
+        public String returnTodayData() {
+            return todayData;
         }
 
         public void storeFlagStatus(int flagStatus) {
@@ -489,37 +524,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         public void storeComputerTime(long computerTime) {
-            if (computerTime > 60 * 15) {
+            if (computerTime > 1) {
                 this.computerTime += computerTime;
             }
         }
 
+        public long returnComputerTime() {
+            return computerTime;
+        }
+
         public void storeEnglishTime(long englishTime) {
-            if (englishTime > 60 * 15) {
+            if (englishTime > 1) {
                 this.englishTime += englishTime;
             }
         }
 
+        public long returnEnglishTime() {
+            return englishTime;
+        }
+
         public void storeWritingTime(long writingTime) {
-            if (writingTime > 60 * 15) {
+            if (writingTime > 1) {
                 this.writingTime += writingTime;
             }
         }
 
+        public long returnWritingTime() {
+            return writingTime;
+        }
+
         public void storeReadingTime(long readingTime) {
-            if (readingTime > 60 * 15) {
+            if (readingTime > 1) {
                 this.readingTime += readingTime;
             }
         }
 
-        public void storeDetailInformation(int flag, long start, long time) {
-            if (time > 60 * 15) {
-                detailList tmp = new detailList();
-                tmp.flag = flag;
-                tmp.start = start;
-                tmp.time = time;
-                detailInformation.add(tmp);
-            }
+        public long returnReadTime() {
+            return readingTime;
         }
 
         public boolean IsExistToday() {
@@ -545,11 +586,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
            if (!IsExistToday())
                return;
             try {
-                Toast.makeText(MainActivity.this, "文件存储", Toast.LENGTH_SHORT).show();
                 in = openFileInput("data");
                 reader = new BufferedReader(new InputStreamReader(in));
                 String line = "";
                 line = reader.readLine();
+                line = line.trim();
                 if (!todayData.equals(line)) {
                     Toast.makeText(MainActivity.this, "日期读取错误！",
                             Toast.LENGTH_LONG).show();
@@ -571,12 +612,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 readingTime = Long.parseLong(line);
                 detailInformation.clear();
                 while ((line = reader.readLine()) != null) {
-                    detailList tmpdatail = new detailList();
+                    AllDataInformation tmpdatail = new AllDataInformation();
                     String[] splitstr = line.split(" ");
-                    if (splitstr.length > 2) {
-                        tmpdatail.flag = Integer.parseInt(splitstr[0]);
-                        tmpdatail.start = Long.parseLong(splitstr[1]);
-                        tmpdatail.time = Long.parseLong(splitstr[2]);
+                    if (splitstr.length > 5) {
+                        tmpdatail.Date = (splitstr[0]).trim();
+                        tmpdatail.total = Long.parseLong(splitstr[1]);
+                        tmpdatail.computer = Long.parseLong(splitstr[2]);
+                        tmpdatail.english = Long.parseLong(splitstr[3]);
+                        tmpdatail.write = Long.parseLong(splitstr[4]);
+                        tmpdatail.read = Long.parseLong(splitstr[5]);
                         detailInformation.add(tmpdatail);
                     }
                 }
@@ -593,6 +637,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
 
+        public void UpdateInformation() {
+            AllDataInformation tmpToday = new AllDataInformation();
+            tmpToday.Date = todayData;
+            tmpToday.total = totalTime;
+            tmpToday.computer = computerTime;
+            tmpToday.english = englishTime;
+            tmpToday.write = writingTime;
+            tmpToday.read = readingTime;
+            for (AllDataInformation eachone : detailInformation) {
+                if (eachone.Date.equals(todayData)) {
+                    detailInformation.remove(eachone);
+                }
+            }
+            detailInformation.add(tmpToday);
+        }
+
         public void StoreInformation() {
             FileOutputStream out = null;
             BufferedWriter writer = null;
@@ -604,9 +664,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 writer.write(Integer.toString(flagStatus));
                 writer.newLine();
                 writer.write(Long.toString(startTime));
-                //测试代码
-                Toast.makeText(MainActivity.this, Long.toString(startTime), Toast.LENGTH_SHORT).show();
-                String tmpstring = Long.toString(startTime);
                 writer.newLine();
                 writer.write(Long.toString(totalTime));
                 writer.newLine();
@@ -618,10 +675,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 writer.newLine();
                 writer.write(Long.toString(readingTime));
                 writer.newLine();
-                for (detailList eachone : detailInformation) {
+                for (AllDataInformation eachone : detailInformation) {
                     String line = "";
-                    line = Integer.toString(eachone.flag) + " " + Long.toString(eachone.start)
-                            + " " + Long.toString(eachone.time);
+                    line += eachone.Date + " ";
+                    line += Long.toString(eachone.total) + " ";
+                    line += Long.toString(eachone.computer) + " ";
+                    line += Long.toString(eachone.english) + " ";
+                    line += Long.toString(eachone.write) + " ";
+                    line += Long.toString(eachone.read);
                     writer.write(line);
                     writer.newLine();
                 }
@@ -636,6 +697,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     e.printStackTrace();
                 }
             }
+            ShowAllinforTextView();
         }
     }
 }
